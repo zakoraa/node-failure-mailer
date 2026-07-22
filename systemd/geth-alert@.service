@@ -1,0 +1,6 @@
+[Unit]
+Description=Blockchain Demo Alert for %i
+
+[Service]
+Type=oneshot
+ExecStart=/home/zakora/ibantu/blockchain-demo/scripts/systemd-failure-email.sh %i

@@ -1,0 +1,34 @@
+[Unit]
+Description=Private Ethereum Geth Node
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+OnFailure=geth-alert@%n
+
+[Service]
+Type=simple
+User=zakora
+Group=zakora
+WorkingDirectory=/home/zakora/ibantu/blockchain-demo
+
+ExecStart=/usr/local/bin/geth \
+  --datadir /home/zakora/ibantu/blockchain-demo/data \
+  --networkid 1515 \
+  --http \
+  --http.addr 0.0.0.0 \
+  --http.port 8545 \
+  --http.api admin,eth,net,web3,personal,miner \
+  --unlock 0x275B7a6EBe6AB169A159505C8c7c40713d7CaaB8 \
+  --password /home/zakora/ibantu/blockchain-demo/data/password.txt \
+  --allow-insecure-unlock \
+  --mine \
+  --miner.etherbase 0x275B7a6EBe6AB169A159505C8c7c40713d7CaaB8
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
