@@ -12,9 +12,19 @@ IFS=',' read -ra RECIPIENTS <<< "$SMTP_TO"
 EMAIL_FILE="$(mktemp)"
 
 {
+    TO_HEADER=""
+
     for TO in "${RECIPIENTS[@]}"; do
-        echo "To: ${TO// /}"
+        TO="${TO// /}"
+
+        if [ -z "$TO_HEADER" ]; then
+            TO_HEADER="$TO"
+        else
+            TO_HEADER="$TO_HEADER, $TO"
+        fi
     done
+
+    echo "To: $TO_HEADER"
 
     echo "From: $SMTP_FROM"
     echo "Subject: [ALERT] Blockchain Node Failure - $SERVICE"
