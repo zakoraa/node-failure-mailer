@@ -1,56 +1,79 @@
+🌐 Language: **English** | [Bahasa Indonesia](README.id.md)
+
 # Node Failure Mailer
 
-Automatically monitor a blockchain node managed by `systemd` and send email notifications via SMTP whenever the node crashes or unexpectedly stops.
+Node Failure Mailer is a simple project that monitors a blockchain node managed by `systemd` and automatically sends email notifications via SMTP whenever the node crashes or stops unexpectedly.
 
 ## Features
 
-- Automatic node monitoring with `systemd`
-- Automatic service restart
-- Automatic failure detection
-- Email notifications via SMTP
+- Monitor blockchain nodes using `systemd`
+- Automatically restart the node after failure
+- Detect service failures using `OnFailure`
+- Send email notifications via SMTP
 - Support multiple email recipients
-- Portable project configuration using `.env`
+- Configure SMTP using a `.env` file
+- Automatically install and configure `systemd` services
 
 ---
 
 # Requirements
 
-| Software | Compatible Version        |
-| -------- | ------------------------- |
-| Ubuntu   | **22.04 LTS – 24.04 LTS** |
-| Geth     | **1.13.x**                |
-| systemd  | **250 – 255**             |
-| Bash     | **5.x**                   |
-| Git      | **2.40+**                 |
-| msmtp    | **1.8.x**                 |
+| Software | Supported Version |
+|----------|-------------------|
+| Ubuntu | **22.04 LTS – 24.04 LTS** |
+| Geth | **1.13.x** |
+| systemd | **250 – 255** |
+| Bash | **5.x** |
+| Git | **2.40+** |
+| msmtp | **1.8.x** |
+
 ---
 
 # Install Dependencies
 
-Update package list.
+Update the package list.
 
 ```bash
 sudo apt update
 ```
 
-Install Geth (if not installed).
+## Install Geth
+
+Add the official Ethereum repository.
 
 ```bash
-# Follow the official installation guide
-https://geth.ethereum.org/docs/getting-started/installing-geth
+sudo add-apt-repository -y ppa:ethereum/ethereum
 ```
 
-Install msmtp.
+Update the package list.
+
+```bash
+sudo apt update
+```
+
+Install Geth.
+
+```bash
+sudo apt install ethereum
+```
+
+Verify the installation.
+
+```bash
+geth version
+```
+
+Official Geth installation guide:
+
+https://geth.ethereum.org/docs/getting-started/installing-geth
+
+## Install msmtp
 
 ```bash
 sudo apt install msmtp
 ```
 
-Verify installation.
-
-```bash
-geth version
-```
+Verify the installation.
 
 ```bash
 msmtp --version
@@ -76,13 +99,13 @@ Copy the example environment file.
 cp .env.example .env
 ```
 
-Open the file.
+Edit the configuration file.
 
 ```bash
 nano .env
 ```
 
-Example:
+Example configuration.
 
 ```env
 SMTP_HOST=smtp.gmail.com
@@ -101,98 +124,120 @@ SMTP_STARTTLS=on
 
 ---
 
-## Gmail App Password
+# Gmail App Password
 
-To use Gmail SMTP, create an App Password.
+If you are using Gmail SMTP, create an App Password first.
 
-Official Google guide:
+Official Google documentation:
 
 https://support.google.com/accounts/answer/185833
 
 ---
 
+# Security
+
+Restrict permissions for executable scripts and sensitive files.
+
+```bash
+chmod +x install.sh
+chmod +x scripts/*.sh
+
+chmod 600 .env
+chmod 600 data/password.txt
+chmod 700 data
+```
+
+Explanation:
+
+- `chmod +x` grants execute permission to the installer and all project scripts.
+- `.env` can only be read and modified by the file owner.
+- `data/password.txt` can only be read by the file owner.
+- The `data` directory can only be accessed by the file owner.
+
+---
+
 # Install systemd Services
 
-Copy the service files.
+Run the installer.
 
 ```bash
-sudo cp systemd/geth-demo.service /etc/systemd/system/
-
-sudo cp systemd/geth-alert@.service /etc/systemd/system/
+./install.sh
 ```
 
-Reload systemd.
+The installer automatically:
+
+- Detects the current project directory.
+- Detects the current Linux user.
+- Installs the required `systemd` service files.
+- Reloads the `systemd` daemon configuration.
+
+---
+
+# Start the Service
+
+Enable the service to start automatically at boot.
 
 ```bash
-sudo systemctl daemon-reload
+sudo systemctl enable geth-demo.service
 ```
 
-Enable the service.
+Start the service.
 
 ```bash
-sudo systemctl enable geth-demo
+sudo systemctl start geth-demo.service
 ```
 
-Start the node.
+Check the service status.
 
 ```bash
-sudo systemctl start geth-demo
-```
-
-Verify status.
-
-```bash
-sudo systemctl status geth-demo
+sudo systemctl status geth-demo.service
 ```
 
 ---
 
 # Verify Email Configuration
 
-You can manually test the email script.
+Send a test email.
 
 ```bash
 ./scripts/send-email.sh test "SMTP configuration works."
 ```
 
+If the SMTP configuration is correct, the email will be delivered to every recipient listed in the `SMTP_TO` variable.
+
 ---
 
-# Simulate Node Failure
+# Simulate a Node Failure
 
-Find the running Geth process.
-
-```bash
-pidof geth
-```
-
-Kill the process.
+To test the monitoring and notification system, send a `SIGKILL` signal to the Geth service.
 
 ```bash
-sudo kill -9 $(pidof geth)
+sudo systemctl kill -s SIGKILL geth-demo.service
 ```
 
 Expected behavior:
 
-1. systemd detects the failure.
-2. systemd executes the alert service.
-3. Service information is collected.
-4. An email notification is sent.
-5. systemd automatically restarts the node.
+1. `systemd` detects the service failure.
+2. `systemd` starts `geth-alert@.service`.
+3. `systemd-failure-email.sh` is executed.
+4. `collect-service-info.sh` gathers service information.
+5. `send-email.sh` sends an email notification.
+6. `systemd` automatically restarts the Geth service.
 
 ---
 
-# Check Logs
+# View Logs
 
-Node service.
+View the Geth service logs.
 
 ```bash
-journalctl -u geth-demo.service -n 100 --no-pager
+sudo journalctl -u geth-demo.service -n 100 --no-pager
 ```
 
-Alert service.
+View the alert service logs.
 
 ```bash
-journalctl -u geth-alert@geth-demo.service -n 100 --no-pager
+sudo journalctl -u 'geth-alert@*' -n 100 --no-pager
 ```
 
 ---
@@ -201,7 +246,6 @@ journalctl -u geth-alert@geth-demo.service -n 100 --no-pager
 
 ```text
 .
-├── config/
 ├── data/
 ├── scripts/
 │   ├── collect-service-info.sh
@@ -212,6 +256,8 @@ journalctl -u geth-alert@geth-demo.service -n 100 --no-pager
 │   ├── geth-demo.service
 │   └── geth-alert@.service
 ├── .env.example
+├── genesis.json
+├── install.sh
 └── README.md
 ```
 
@@ -220,29 +266,32 @@ journalctl -u geth-alert@geth-demo.service -n 100 --no-pager
 # Workflow
 
 ```text
-Node Crash
-     │
-     ▼
+Geth Node Crash
+        │
+        ▼
 systemd
-     │
-     ▼
-OnFailure
-     │
-     ▼
+        │
+        ▼
+OnFailure=geth-alert@%n
+        │
+        ▼
+geth-alert@.service
+        │
+        ▼
 systemd-failure-email.sh
-     │
-     ▼
+        │
+        ▼
 collect-service-info.sh
-     │
-     ▼
+        │
+        ▼
 send-email.sh
-     │
-     ▼
+        │
+        ▼
 SMTP Server
-     │
-     ▼
+        │
+        ▼
 Email Notification
-     │
-     ▼
-systemd Restart
+        │
+        ▼
+systemd Restarts the Service
 ```
