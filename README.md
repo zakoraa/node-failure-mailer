@@ -61,7 +61,7 @@ msmtp --version
 # Clone Repository
 
 ```bash
-git clone https://github.com/<your-username>/node-failure-mailer.git
+git clone https://github.com/zakoraa/node-failure-mailer.git
 
 cd node-failure-mailer
 ```
