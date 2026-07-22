@@ -143,16 +143,12 @@ chmod +x install.sh
 chmod +x scripts/*.sh
 
 chmod 600 .env
-chmod 600 data/password.txt
-chmod 700 data
 ```
 
 Penjelasan:
 
 - `chmod +x` memberikan izin eksekusi pada installer dan seluruh script.
 - `.env` hanya dapat dibaca dan diubah oleh pemilik file.
-- `data/password.txt` hanya dapat dibaca oleh pemilik file.
-- Folder `data` hanya dapat diakses oleh pemilik.
 
 ---
 

@@ -143,16 +143,12 @@ chmod +x install.sh
 chmod +x scripts/*.sh
 
 chmod 600 .env
-chmod 600 data/password.txt
-chmod 700 data
 ```
 
 Explanation:
 
 - `chmod +x` grants execute permission to the installer and all project scripts.
 - `.env` can only be read and modified by the file owner.
-- `data/password.txt` can only be read by the file owner.
-- The `data` directory can only be accessed by the file owner.
 
 ---
 
