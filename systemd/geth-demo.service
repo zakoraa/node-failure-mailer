@@ -6,23 +6,26 @@ Wants=network-online.target
 StartLimitIntervalSec=60
 StartLimitBurst=3
 
+# Jika service geth gagal/crash, systemd akan menjalankan service
+# geth-alert@.service yang bertugas mengirim notifikasi email.
 OnFailure=geth-alert@%n
 
 [Service]
 Type=simple
-User=zakora
-Group=zakora
-WorkingDirectory=/home/zakora/ibantu/blockchain-demo
+User=__USER__
+Group=__USER__
+
+WorkingDirectory=__PROJECT_DIR__
 
 ExecStart=/usr/local/bin/geth \
-  --datadir /home/zakora/ibantu/blockchain-demo/data \
+  --datadir __PROJECT_DIR__/data \
   --networkid 1515 \
   --http \
   --http.addr 0.0.0.0 \
   --http.port 8545 \
   --http.api admin,eth,net,web3,personal,miner \
   --unlock 0x275B7a6EBe6AB169A159505C8c7c40713d7CaaB8 \
-  --password /home/zakora/ibantu/blockchain-demo/data/password.txt \
+  --password __PROJECT_DIR__/data/password.txt \
   --allow-insecure-unlock \
   --mine \
   --miner.etherbase 0x275B7a6EBe6AB169A159505C8c7c40713d7CaaB8

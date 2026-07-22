@@ -3,4 +3,8 @@ Description=Blockchain Demo Alert for %i
 
 [Service]
 Type=oneshot
-ExecStart=/home/zakora/ibantu/blockchain-demo/scripts/systemd-failure-email.sh %i
+
+# Script akan dijalankan ketika service geth mengalami
+# kegagalan (OnFailure). Script akan mengumpulkan informasi
+# node kemudian mengirimkan email notifikasi.
+ExecStart=__PROJECT_DIR__/scripts/systemd-failure-email.sh %i
